@@ -3,6 +3,7 @@
 PORTNAME=	icecream
 PORTVERSION=	1.2
 CATEGORIES=	devel
+MASTER_SITES=	https://github.com/icecc/icecream/releases/download/${PORTVERSION}/
 
 MAINTAINER=	lwhsu@FreeBSD.org
 COMMENT=	Distributed compiler with a central scheduler to share build load
@@ -18,10 +19,6 @@ CFLAGS+=	-I${LOCALBASE}/include
 LDFLAGS+=	-L${LOCALBASE}/lib
 
 GNU_CONFIGURE=	yes
-
-USE_GITHUB=	yes
-GH_ACCOUNT=	icecc
-GH_TAGNAME=	${PORTVERSION}
 
 SHEBANG_FILES=	client/icecc-test-env.in
 

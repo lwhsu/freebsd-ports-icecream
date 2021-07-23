@@ -1,8 +1,8 @@
 #!/bin/sh
 
-PORTSDIR=/usr/ports
-
 PORT=devel/icecream
+
+PORTSDIR=/usr/ports
 
 set -ex
 
@@ -10,7 +10,7 @@ pwd
 
 cd /usr
 mv ports ports.old
-git clone https://github.com/freebsd/freebsd-ports ports
+git clone --depth=1 --single-branch -b main https://github.com/freebsd/freebsd-ports.git ports
 
 cd ${CIRRUS_WORKING_DIR}
 for p in `cat list.txt`
@@ -27,9 +27,6 @@ mkdir /usr/ports/distfiles
 
 df -h
 
-#cd /usr/ports/editors/libreoffice
-#make all-depends-list | awk -F'/' '{print $4"/"$5}' | xargs pkg install -y
-
 echo "NO_ZFS=yes" >> /usr/local/etc/poudriere.conf
 echo "ALLOW_MAKE_JOBS=yes" >> /usr/local/etc/poudriere.conf
 sed -i.bak -e 's,FREEBSD_HOST=_PROTO_://_CHANGE_THIS_,FREEBSD_HOST=https://download.FreeBSD.org,' /usr/local/etc/poudriere.conf
@@ -38,17 +35,19 @@ mkdir -p /usr/local/poudriere
 poudriere jail -c -j jail -v `uname -r`
 poudriere ports -c -f none -m null -M /usr/ports
 
-# use an easy port to bootstrap pkg repo
-poudriere bulk -t -j jail net/nc
+set +e
+poudriere testport -b latest -j jail ${PORT}
+RESULT=$?
+if [ ${RESULT} -eq 0 ]; then
+	exit 0
+fi
+set -e
 
-cd /usr/ports
-cd ${PORT}
-PWD=`pwd -P`
-PORTDIR=`dirname ${PWD}`
-PORTDIR=`dirname ${PORTDIR}`
-make all-depends-list | sed -e "s,${PORTDIR}/,," | xargs sudo pkg fetch -y -o pkgs
-rm -fr /usr/local/poudriere/data/packages/jail-default/.latest/All
-mv pkgs/All /usr/local/poudriere/data/packages/jail-default/.latest/
-rm -fr pkgs
+ls -l /usr/local/poudriere/data/logs/bulk/jail-default/latest/logs/errors
+for i in /usr/local/poudriere/data/logs/bulk/jail-default/latest/logs/errors/*.log
+do
+	echo ==== $i ====
+	cat $i
+done
 
-poudriere testport -j jail ${PORT}
+exit ${RESULT}

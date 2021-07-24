@@ -19,6 +19,7 @@ man/man1/icecc-create-env.1.gz
 man/man1/icecc-scheduler.1.gz
 man/man1/icecc.1.gz
 man/man1/iceccd.1.gz
+man/man1/icerun.1.gz
 man/man7/icecream.7.gz
 sbin/icecc-scheduler
 sbin/iceccd
